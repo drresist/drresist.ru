@@ -40,23 +40,40 @@ h1 { max-width: 850px; margin: 0; font-family: Georgia, "Times New Roman", serif
 .intro { max-width: 490px; margin: 32px 0 0; color: #55584f; font-size: clamp(17px, 2vw, 20px); line-height: 1.65; }
 footer { min-height: 76px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 
-.article-page { width: min(100%, 760px); margin-inline: auto; padding-block: 56px 96px; font-family: Georgia, "Times New Roman", serif; font-size: 18px; line-height: 1.75; }
-.article-page h1 { margin: 10px 0 16px; font-size: clamp(38px, 8vw, 64px); line-height: 1.08; }
+.article-page { width: min(100%, 720px); margin-inline: auto; padding-block: clamp(40px, 8vw, 72px) 96px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(18px, 1.1vw + 15px, 20px); line-height: 1.8; }
+.article-page h1 { margin: 10px 0 18px; font-size: clamp(38px, 8vw, 64px); line-height: 1.08; }
 .meta, .summary, .tags { color: var(--muted); font-family: system-ui, sans-serif; font-size: 15px; line-height: 1.6; }
 .meta { margin: 0; }
 .summary { margin: 0 0 20px; }
 .tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; }
 .tags li { border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
-.prose h2, .prose h3 { margin-top: 1.8em; line-height: 1.25; }
-.prose a { color: var(--accent); }
-.prose img { max-width: 100%; height: auto; }
-.prose pre { overflow-x: auto; padding: 16px; background: #e9e5dc; font-size: 15px; }
+.prose { max-width: 68ch; overflow-wrap: break-word; }
+.prose > * { margin-block: 1.15em; }
+.prose h2, .prose h3 { margin-top: 2em; line-height: 1.25; }
+.prose h2 { font-size: 1.65em; }
+.prose h3 { font-size: 1.3em; }
+.prose a { color: var(--accent); text-underline-offset: .18em; text-decoration-thickness: .06em; }
+.prose img { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+.prose pre { overflow-x: auto; max-width: 100%; padding: 16px; background: #e9e5dc; font: .82em/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.prose :not(pre) > code { padding: .12em .32em; background: #e9e5dc; font-size: .88em; }
 .prose blockquote { margin-inline: 0; padding-left: 20px; border-left: 3px solid var(--accent); color: var(--muted); }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.prose li + li { margin-top: .35em; }
+.prose table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: .88em; }
+.prose th, .prose td { padding: .45em .7em; border: 1px solid var(--line); text-align: left; }
+.prose hr { border: 0; border-top: 1px solid var(--line); }
+
+.not-found { display: grid; align-content: center; justify-items: start; padding: 90px 0 120px; }
+.not-found .intro { margin: 24px 0; }
+.home-link { color: var(--ink); text-underline-offset: 4px; }
+.home-link:hover { color: var(--accent); }
 
 @media (max-width: 600px) {
   .page { width: min(100% - 36px, 1120px); }
   header { min-height: 72px; }
   .home { padding: 80px 0 96px; }
-  .article-page { font-size: 17px; }
+  .article-page { padding-block: 40px 72px; font-size: 18px; line-height: 1.75; }
+  .prose pre { padding: 12px; }
+  .not-found { padding: 72px 0 96px; }
   footer { gap: 16px; }
 }

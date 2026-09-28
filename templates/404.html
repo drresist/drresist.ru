@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Страница не найдена — DrResist{% endblock title %}
+{% block description %}Запрошенная страница не найдена.{% endblock description %}
+{% block canonical %}<meta name="robots" content="noindex">{% endblock canonical %}
+{% block content %}
+<main class="not-found">
+  <p class="eyebrow">Ошибка 404</p>
+  <h1>Эта страница<br><span>не найдена.</span></h1>
+  <p class="intro">Возможно, заметка была перемещена или адрес указан с ошибкой.</p>
+  <a class="home-link" href="{{ config.base_url }}/">Вернуться на главную</a>
+</main>
+{% endblock content %}

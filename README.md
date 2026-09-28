@@ -23,6 +23,17 @@ The filename, metadata, and duplicate slugs are checked before Zola builds the s
 
 The Markdown body supports Russian text, headings, lists, links, images, blockquotes, and fenced code blocks. Put shared images in `static/images/` and reference them as `/images/file-name.png`.
 
+Each post page includes its title, publication date, category, summary, optional tags, and canonical URL. Unknown paths use the generated `dist/404.html` page. To serve it with HTTP status 404 on Caddy, configure the site block to route errors to that file:
+
+```caddyfile
+handle_errors 404 {
+    rewrite /404.html
+    file_server
+}
+```
+
+Keep this handler inside the existing site block, alongside the site's `root` and `file_server` directives. Caddy preserves the 404 status while serving the custom page.
+
 ## Preview and build
 
 Start a local preview:
