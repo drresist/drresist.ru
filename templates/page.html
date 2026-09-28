@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} — DrResist{% endblock title %}
+{% block description %}{{ page.extra.summary }}{% endblock description %}
+{% block content %}
+<main class="article-page">
+  <p class="meta">
+    <time datetime="{{ page.date | date(format='%Y-%m-%d') }}">{{ page.date | date(format='%Y-%m-%d') }}</time>
+    · {% if page.extra.category == "it" %}IT{% elif page.extra.category == "health" %}Здоровье{% else %}Спорт{% endif %}
+  </p>
+  <h1>{{ page.title }}</h1>
+  <p class="summary">{{ page.extra.summary }}</p>
+  {% set tags = page.extra.tags | default(value=[]) %}
+  {% if tags %}
+  <ul class="tags" aria-label="Теги">
+    {% for tag in tags %}<li>{{ tag }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  <article class="prose">
+    {{ page.content | safe }}
+  </article>
+</main>
+{% endblock content %}
