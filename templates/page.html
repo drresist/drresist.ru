@@ -2,6 +2,7 @@
 
 {% block title %}{{ page.title }} — DrResist{% endblock title %}
 {% block description %}{{ page.extra.summary }}{% endblock description %}
+{% block canonical %}<link rel="canonical" href="{{ page.permalink | safe }}">{% endblock canonical %}
 {% block content %}
 <main class="article-page">
   <p class="meta">
