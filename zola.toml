@@ -1,7 +1,0 @@
-base_url = "https://drresist.ru"
-title = "DrResist — личный блог"
-description = "Личный блог DrResist."
-default_language = "ru"
-output_dir = "dist"
-compile_sass = false
-minify_html = false

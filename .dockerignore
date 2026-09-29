@@ -8,13 +8,6 @@ db.sqlite3
 *.sqlite3
 staticfiles
 media
-content
-dist
-tools
-templates
-zola.toml
-scripts/site
-POST_TEMPLATE.md
 README.md
 docker-compose.yml
 .dockerignore
