@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}DrResist{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'site.css' %}">
+</head>
+<body>
+  <header>
+    <a href="{% url 'blog:home' %}">DrResist</a>
+    <nav>
+      {% for c in nav_categories %}
+        <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
+      {% endfor %}
+    </nav>
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
