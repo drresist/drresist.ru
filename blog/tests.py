@@ -100,3 +100,51 @@ class BlogUiTests(TestCase):
     def test_category_aria_current(self):
         r = self.client.get(reverse("blog:category", kwargs={"slug": "it"}))
         self.assertContains(r, 'aria-current="page"')
+
+
+class PostAdminFormTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.it, _ = Category.objects.get_or_create(slug="it", defaults={"name": "IT"})
+
+    def test_admin_create_sets_slug_date_and_tags(self):
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_superuser(
+            "editor", "e@example.com", "x"
+        )
+        self.client.force_login(user)
+        url = reverse("admin:blog_post_add")
+        r = self.client.post(
+            url,
+            {
+                "title": "Новый пост",
+                "category": self.it.pk,
+                "summary": "кратко",
+                "body": "# hi\n\ntext",
+                "tags_text": "django, blog",
+                "is_published": "on",
+            },
+            follow=True,
+        )
+        self.assertEqual(r.status_code, 200)
+        post = Post.objects.get(title="Новый пост")
+        self.assertTrue(post.slug)
+        self.assertEqual(post.published_at, date.today())
+        self.assertEqual(post.tags, ["django", "blog"])
+        self.assertTrue(post.is_published)
+
+    def test_admin_form_shows_tags_as_text(self):
+        from .admin import PostAdminForm
+
+        post = Post.objects.create(
+            title="С тегами",
+            slug="with-tags",
+            published_at=date(2026, 9, 29),
+            category=self.it,
+            summary="s",
+            body="b",
+            tags=["a", "b"],
+        )
+        form = PostAdminForm(instance=post)
+        self.assertEqual(form.fields["tags_text"].initial, "a, b")
