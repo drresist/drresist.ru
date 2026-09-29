@@ -1,19 +1,22 @@
 {% extends "blog/base.html" %}
 {% load markdown_extras %}
 {% block title %}{{ post.title }} — DrResist{% endblock %}
+{% block description %}{{ post.summary }}{% endblock %}
 {% block content %}
-<article>
-  <h1>{{ post.title }}</h1>
-  <p>
-    <time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at }}</time>
+<main class="article-page">
+  <p class="meta">
+    <time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"Y-m-d" }}</time>
     · <a href="{{ post.category.get_absolute_url }}">{{ post.category.name }}</a>
   </p>
-  <p>{{ post.summary }}</p>
-  <div class="body">
-    {{ post.body|markdown }}
-  </div>
+  <h1>{{ post.title }}</h1>
+  <p class="summary">{{ post.summary }}</p>
   {% if post.tags %}
-    <p>Теги: {{ post.tags|join:", " }}</p>
+  <ul class="tags" aria-label="Теги">
+    {% for tag in post.tags %}<li>{{ tag }}</li>{% endfor %}
+  </ul>
   {% endif %}
-</article>
+  <article class="prose">
+    {{ post.body|markdown }}
+  </article>
+</main>
 {% endblock %}
