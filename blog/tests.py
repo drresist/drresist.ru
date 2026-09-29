@@ -148,3 +148,57 @@ class PostAdminFormTests(TestCase):
         )
         form = PostAdminForm(instance=post)
         self.assertEqual(form.fields["tags_text"].initial, "a, b")
+
+
+class AsciiSlugTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.it, _ = Category.objects.get_or_create(slug="it", defaults={"name": "IT"})
+
+    def test_cyrillic_title_makes_ascii_slug(self):
+        from .slugs import ascii_slug
+
+        self.assertEqual(ascii_slug("Что такое SRE"), "chto-takoe-sre")
+        self.assertRegex(ascii_slug("Привет мир"), r"^[a-z0-9-]+$")
+
+    def test_post_with_cyrillic_title_reverses(self):
+        post = Post(
+            title="Что такое SRE",
+            published_at=date(2026, 9, 29),
+            category=self.it,
+            summary="s",
+            body="b",
+            is_published=True,
+        )
+        post.save()
+        self.assertRegex(post.slug, r"^[-a-zA-Z0-9_]+$")
+        url = reverse("blog:post", kwargs={"slug": post.slug})
+        r = self.client.get(url)
+        self.assertEqual(r.status_code, 200)
+
+    def test_home_survives_cyrillic_titled_post(self):
+        Post.objects.create(
+            title="Что такое SRE",
+            slug="bad-will-be-fixed",  # will keep if ascii-safe
+            published_at=date(2026, 9, 29),
+            category=self.it,
+            summary="s",
+            body="b",
+            is_published=True,
+        )
+        # Force a bad unicode slug the way #16 did, then resave via model fix path
+        bad = Post(
+            title="Ещё один",
+            published_at=date(2026, 9, 29),
+            category=self.it,
+            summary="s",
+            body="b",
+            is_published=True,
+        )
+        # bypass save normalization briefly
+        bad.slug = "ещё-один"
+        # model.save should repair
+        bad.save()
+        self.assertRegex(bad.slug, r"^[-a-zA-Z0-9_]+$")
+        r = self.client.get(reverse("blog:home"))
+        self.assertEqual(r.status_code, 200)

@@ -39,5 +39,13 @@ class Post(models.Model):
     def __str__(self) -> str:
         return self.title
 
+
+    def save(self, *args, **kwargs):
+        from .slugs import ascii_slug, is_url_safe_slug, unique_slug
+
+        if not self.slug or not is_url_safe_slug(self.slug):
+            self.slug = unique_slug(self.title, exclude_pk=self.pk)
+        super().save(*args, **kwargs)
+
     def get_absolute_url(self) -> str:
         return reverse("blog:post", kwargs={"slug": self.slug})
