@@ -2,9 +2,8 @@ from datetime import date
 
 from django import forms
 from django.contrib import admin
-from django.utils.text import slugify
-
 from .models import Category, Post
+from .slugs import unique_slug
 
 
 @admin.register(Category)
@@ -60,19 +59,6 @@ class PostAdminForm(forms.ModelForm):
         return post
 
 
-def _unique_slug(title: str, exclude_pk: int | None = None) -> str:
-    base = slugify(title, allow_unicode=True) or "post"
-    slug = base
-    n = 2
-    qs = Post.objects.all()
-    if exclude_pk is not None:
-        qs = qs.exclude(pk=exclude_pk)
-    while qs.filter(slug=slug).exists():
-        slug = f"{base}-{n}"
-        n += 1
-    return slug
-
-
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     form = PostAdminForm
@@ -111,5 +97,5 @@ class PostAdmin(admin.ModelAdmin):
         if not obj.published_at:
             obj.published_at = date.today()
         if not obj.slug:
-            obj.slug = _unique_slug(obj.title, exclude_pk=obj.pk)
+            obj.slug = unique_slug(obj.title, exclude_pk=obj.pk)
         super().save_model(request, obj, form, change)
