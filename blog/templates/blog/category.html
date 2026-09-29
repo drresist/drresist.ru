@@ -1,18 +1,31 @@
 {% extends "blog/base.html" %}
 {% block title %}{{ category.name }} — DrResist{% endblock %}
+{% block description %}Раздел {{ category.name }} в блоге DrResist.{% endblock %}
 {% block content %}
-<h1>{{ category.name }}</h1>
-{% if posts %}
-  <ul>
-  {% for post in posts %}
-    <li>
-      <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-      <span>{{ post.published_at }}</span>
-      <p>{{ post.summary }}</p>
-    </li>
-  {% endfor %}
-  </ul>
-{% else %}
-  <p>В разделе пока пусто.</p>
-{% endif %}
+<main class="category-page">
+  <header class="section-head">
+    <p class="eyebrow">Раздел</p>
+    <h1>{{ category.name }}</h1>
+  </header>
+
+  <section class="feed" aria-label="Посты в разделе {{ category.name }}">
+    {% if posts %}
+      <ul class="post-list">
+        {% for post in posts %}
+          <li class="post-card">
+            <p class="meta">
+              <time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"Y-m-d" }}</time>
+            </p>
+            <h2 class="post-card__title">
+              <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+            </h2>
+            <p class="summary">{{ post.summary }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">В разделе «{{ category.name }}» пока пусто. Загляни позже или посмотри <a href="{% url 'blog:home' %}">ленту</a>.</p>
+    {% endif %}
+  </section>
+</main>
 {% endblock %}
