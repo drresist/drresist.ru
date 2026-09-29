@@ -57,3 +57,46 @@ class BlogSmokeTests(TestCase):
     def test_queries_home_no_n_plus_one(self):
         with self.assertNumQueries(2):
             self.client.get(reverse("blog:home"))
+
+
+class BlogUiTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        for slug, name in (("it", "IT"), ("health", "Health"), ("sport", "Sport")):
+            Category.objects.get_or_create(slug=slug, defaults={"name": name})
+        cls.it = Category.objects.get(slug="it")
+        cls.health = Category.objects.get(slug="health")
+        Post.objects.create(
+            title="Видимый",
+            slug="visible-ui",
+            published_at=date(2026, 9, 29),
+            category=cls.it,
+            summary="Краткое описание для карточки",
+            body="Текст",
+            is_published=True,
+        )
+
+    def test_nav_links_all_categories(self):
+        r = self.client.get(reverse("blog:home"))
+        self.assertEqual(r.status_code, 200)
+        for slug, name in (("it", "IT"), ("health", "Health"), ("sport", "Sport")):
+            self.assertContains(r, name)
+            self.assertContains(r, reverse("blog:category", kwargs={"slug": slug}))
+
+    def test_home_card_shows_title_date_category_summary(self):
+        r = self.client.get(reverse("blog:home"))
+        self.assertContains(r, "Видимый")
+        self.assertContains(r, "2026-09-29")
+        self.assertContains(r, "IT")
+        self.assertContains(r, "Краткое описание для карточки")
+        self.assertContains(r, reverse("blog:post", kwargs={"slug": "visible-ui"}))
+
+    def test_empty_category_useful_state(self):
+        r = self.client.get(reverse("blog:category", kwargs={"slug": "health"}))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "пока пусто")
+        self.assertContains(r, reverse("blog:home"))
+
+    def test_category_aria_current(self):
+        r = self.client.get(reverse("blog:category", kwargs={"slug": "it"}))
+        self.assertContains(r, 'aria-current="page"')

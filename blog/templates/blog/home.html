@@ -1,18 +1,32 @@
 {% extends "blog/base.html" %}
 {% block title %}DrResist — лента{% endblock %}
 {% block content %}
-<h1>Лента</h1>
-{% if posts %}
-  <ul>
-  {% for post in posts %}
-    <li>
-      <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
-      <span>{{ post.published_at }} · {{ post.category.name }}</span>
-      <p>{{ post.summary }}</p>
-    </li>
-  {% endfor %}
-  </ul>
-{% else %}
-  <p>Пока нет опубликованных постов.</p>
-{% endif %}
+<main class="home-feed">
+  <section class="home-hero" aria-labelledby="home-heading">
+    <p class="eyebrow">Привет, я DrResist</p>
+    <h1 id="home-heading">Место для<br>моих <span>мыслей.</span></h1>
+    <p class="intro">Личный блог о том, что кажется важным, интересным или просто заслуживает отдельной заметки.</p>
+  </section>
+
+  <section class="feed" aria-label="Свежие посты">
+    {% if posts %}
+      <ul class="post-list">
+        {% for post in posts %}
+          <li class="post-card">
+            <p class="meta">
+              <time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"Y-m-d" }}</time>
+              · <a href="{{ post.category.get_absolute_url }}">{{ post.category.name }}</a>
+            </p>
+            <h2 class="post-card__title">
+              <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+            </h2>
+            <p class="summary">{{ post.summary }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty-state">Пока нет опубликованных постов. Скоро здесь появятся заметки.</p>
+    {% endif %}
+  </section>
+</main>
 {% endblock %}
