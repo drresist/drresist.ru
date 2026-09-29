@@ -49,3 +49,21 @@ python manage.py test blog
 - `DATABASE_URL` — `postgres://...` или пусто (sqlite)
 
 Шаблон Markdown-поста: [POST_TEMPLATE.md](POST_TEMPLATE.md).
+
+## Docker and CI
+
+Django app entrypoint: `config.wsgi`, health at `GET /health` (no trailing slash).
+
+```sh
+# local with Postgres
+docker compose up --build
+# then http://127.0.0.1:8000/health
+
+# import markdown from posts/
+python manage.py import_posts
+```
+
+GitHub Actions (`deploy/github-ci.yml` (скопировать в `.github/workflows/ci.yml` — нужен scope `workflow`)) runs migrations, `import_posts`, `manage.py test blog`, then builds the image and checks `/health`.
+
+Deploy credentials and Caddy/host wiring stay with ops — not in this repo.
+
