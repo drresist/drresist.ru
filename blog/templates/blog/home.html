@@ -1,0 +1,18 @@
+{% extends "blog/base.html" %}
+{% block title %}DrResist — лента{% endblock %}
+{% block content %}
+<h1>Лента</h1>
+{% if posts %}
+  <ul>
+  {% for post in posts %}
+    <li>
+      <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+      <span>{{ post.published_at }} · {{ post.category.name }}</span>
+      <p>{{ post.summary }}</p>
+    </li>
+  {% endfor %}
+  </ul>
+{% else %}
+  <p>Пока нет опубликованных постов.</p>
+{% endif %}
+{% endblock %}
