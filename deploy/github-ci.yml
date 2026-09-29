@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Django tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Migrate + import sample markdown
+        env:
+          DJANGO_DEBUG: "1"
+          DJANGO_SECRET_KEY: "ci-not-secret"
+        run: |
+          python manage.py migrate --noinput
+          python manage.py import_posts
+
+      - name: Test
+        env:
+          DJANGO_DEBUG: "1"
+          DJANGO_SECRET_KEY: "ci-not-secret"
+        run: python manage.py test blog -v 2
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t drresist-ru:ci .
+
+      - name: Boot container and hit /health
+        run: |
+          docker run -d --name blog \
+            -e DJANGO_DEBUG=0 \
+            -e DJANGO_SECRET_KEY=ci-not-secret \
+            -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
+            -p 8000:8000 \
+            drresist-ru:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health; then
+              echo
+              docker stop blog
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs blog || true
+          docker stop blog || true
+          exit 1
