@@ -1,35 +1,30 @@
+from datetime import date
+
 from django.db import models
 from django.urls import reverse
 
-
-class Category(models.Model):
-    slug = models.SlugField(unique=True, max_length=32)
-    name = models.CharField(max_length=64)
-
-    class Meta:
-        ordering = ["slug"]
-        verbose_name_plural = "categories"
-
-    def __str__(self) -> str:
-        return self.name
-
-    def get_absolute_url(self) -> str:
-        return reverse("blog:category", kwargs={"slug": self.slug})
+CATEGORIES = (
+    ("it", "IT"),
+    ("health", "Health"),
+    ("sport", "Sport"),
+)
 
 
 class Post(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField("Заголовок", max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
     published_at = models.DateField(db_index=True)
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.PROTECT,
-        related_name="posts",
+    category = models.CharField("Раздел", max_length=16, choices=CATEGORIES, default="it")
+    summary = models.TextField("Краткое")
+    body = models.TextField("Текст (Markdown)", help_text="Markdown")
+    tags = models.CharField(
+        "Теги",
+        max_length=200,
+        blank=True,
+        default="",
+        help_text="Через запятую, например: django, devops",
     )
-    summary = models.TextField()
-    body = models.TextField(help_text="Markdown")
-    tags = models.JSONField(default=list, blank=True)
-    is_published = models.BooleanField(default=True, db_index=True)
+    is_published = models.BooleanField("Опубликовано", default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -39,10 +34,14 @@ class Post(models.Model):
     def __str__(self) -> str:
         return self.title
 
+    def tag_list(self) -> list[str]:
+        return [part.strip() for part in self.tags.split(",") if part.strip()]
 
     def save(self, *args, **kwargs):
-        from .slugs import ascii_slug, is_url_safe_slug, unique_slug
+        from .slugs import is_url_safe_slug, unique_slug
 
+        if not self.published_at:
+            self.published_at = date.today()
         if not self.slug or not is_url_safe_slug(self.slug):
             self.slug = unique_slug(self.title, exclude_pk=self.pk)
         super().save(*args, **kwargs)

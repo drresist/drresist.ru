@@ -1,6 +1,6 @@
 # DrResist.ru
 
-Личный блог на Django. Посты в БД (Django admin или импорт Markdown из `posts/`).
+Личный блог на Django. Одна модель `Post`. Разделы — поле с выбором (it / health / sport), не отдельная таблица. Посты пишутся в админке или импортируются из `posts/*.md`.
 
 ## Стек
 
@@ -54,7 +54,7 @@ Entrypoint: migrate → `import_posts` → collectstatic → gunicorn `:8000`.
 
 ## Markdown → БД
 
-Файлы в `posts/*.md` с TOML frontmatter (`+++`). Шаблон: [POST_TEMPLATE.md](POST_TEMPLATE.md).
+Файлы в `posts/*.md` с TOML frontmatter (`+++`). Шаблон: [POST_TEMPLATE.md](POST_TEMPLATE.md). Теги в файле — список, в базе — строка через запятую.
 
 ```sh
 python manage.py import_posts

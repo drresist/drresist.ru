@@ -1,13 +1,14 @@
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
 
-from .models import Category, Post
+from .models import CATEGORIES, Post
+
+CATEGORY_NAMES = dict(CATEGORIES)
 
 
 def _published_posts():
-    # select_related — иначе лента и категория устроят N+1 по category
-    return Post.objects.filter(is_published=True).select_related("category")
+    return Post.objects.filter(is_published=True)
 
 
 @require_GET
@@ -17,18 +18,19 @@ def health(request: HttpRequest) -> JsonResponse:
 
 @require_GET
 def home(request: HttpRequest) -> HttpResponse:
-    posts = _published_posts()[:20]
-    return render(request, "blog/home.html", {"posts": posts})
+    return render(request, "blog/home.html", {"posts": _published_posts()[:20]})
 
 
 @require_GET
 def category(request: HttpRequest, slug: str) -> HttpResponse:
-    cat = get_object_or_404(Category, slug=slug)
-    posts = _published_posts().filter(category=cat)
+    name = CATEGORY_NAMES.get(slug)
+    if name is None:
+        raise Http404
+    posts = _published_posts().filter(category=slug)
     return render(
         request,
         "blog/category.html",
-        {"category": cat, "posts": posts},
+        {"category": {"slug": slug, "name": name}, "posts": posts},
     )
 
 

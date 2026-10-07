@@ -2,85 +2,61 @@
 
 from __future__ import annotations
 
-import re
-from datetime import date
+import tomllib
+from datetime import date, datetime
 from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from blog.models import Category, Post
+from blog.models import CATEGORIES, Post
 
-FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n?(.*)$", re.DOTALL)
-# Also support +++ TOML frontmatter from the old Zola posts
-TOML_FM_RE = re.compile(r"^\+\+\+\n(.*?)\n\+\+\+\n?(.*)$", re.DOTALL)
-
-
-def _parse_toml_simple(text: str) -> dict:
-    """Tiny TOML subset for our post frontmatter — no toml lib required."""
-    data: dict = {"extra": {}}
-    section = None
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("[") and line.endswith("]"):
-            section = line[1:-1].strip()
-            continue
-        if "=" not in line:
-            continue
-        key, _, val = line.partition("=")
-        key = key.strip()
-        val = val.strip()
-        if val.startswith('"') and val.endswith('"'):
-            parsed: object = val[1:-1]
-        elif val.startswith("[") and val.endswith("]"):
-            inner = val[1:-1].strip()
-            parsed = [
-                p.strip().strip('"')
-                for p in inner.split(",")
-                if p.strip()
-            ] if inner else []
-        else:
-            # date YYYY-MM-DD or bare word
-            parsed = val.split("#", 1)[0].strip().strip('"')
-        if section == "extra":
-            data["extra"][key] = parsed
-        else:
-            data[key] = parsed
-    return data
+CATEGORY_SLUGS = {slug for slug, _name in CATEGORIES}
 
 
 def parse_post_file(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
-    m = TOML_FM_RE.match(text) or FRONTMATTER_RE.match(text)
-    if not m:
-        raise CommandError(f"{path.name}: no frontmatter")
-    meta = _parse_toml_simple(m.group(1))
-    body = m.group(2).strip()
+    if not text.startswith("+++\n"):
+        raise CommandError(f"{path.name}: expected TOML frontmatter (+++)")
+    end = text.find("\n+++\n", 4)
+    if end == -1:
+        raise CommandError(f"{path.name}: frontmatter is not closed")
+    try:
+        meta = tomllib.loads(text[4:end])
+    except tomllib.TOMLDecodeError as exc:
+        raise CommandError(f"{path.name}: {exc}") from exc
+
     extra = meta.get("extra") or {}
     title = meta.get("title")
     raw_date = meta.get("date")
     category = extra.get("category")
     summary = extra.get("summary")
-    tags = extra.get("tags") or []
     if not title or not raw_date or not category or not summary:
-        raise CommandError(
-            f"{path.name}: need title, date, extra.category, extra.summary"
-        )
-    if isinstance(raw_date, str):
-        published = date.fromisoformat(raw_date)
+        raise CommandError(f"{path.name}: need title, date, extra.category, extra.summary")
+    if category not in CATEGORY_SLUGS:
+        raise CommandError(f"{path.name}: unknown category {category!r}")
+
+    if isinstance(raw_date, datetime):
+        published = raw_date.date()
+    elif isinstance(raw_date, date):
+        published = raw_date
     else:
-        raise CommandError(f"{path.name}: bad date")
-    slug = path.stem
+        published = date.fromisoformat(str(raw_date))
+
+    tags = extra.get("tags") or []
+    if isinstance(tags, list):
+        tags_text = ", ".join(str(tag) for tag in tags)
+    else:
+        tags_text = str(tags)
+
     return {
-        "slug": slug,
+        "slug": path.stem,
         "title": title,
         "published_at": published,
-        "category_slug": category,
+        "category": category,
         "summary": summary,
-        "tags": tags if isinstance(tags, list) else [],
-        "body": body,
+        "tags": tags_text,
+        "body": text[end + 5 :].strip(),
     }
 
 
@@ -106,25 +82,19 @@ class Command(BaseCommand):
         created = updated = 0
         for path in files:
             data = parse_post_file(path)
-            cat, _ = Category.objects.get_or_create(
-                slug=data["category_slug"],
-                defaults={"name": data["category_slug"].title()},
-            )
-            obj, was_created = Post.objects.update_or_create(
+            _obj, was_created = Post.objects.update_or_create(
                 slug=data["slug"],
                 defaults={
                     "title": data["title"],
                     "published_at": data["published_at"],
-                    "category": cat,
+                    "category": data["category"],
                     "summary": data["summary"],
                     "body": data["body"],
                     "tags": data["tags"],
                     "is_published": True,
                 },
             )
-            if was_created:
-                created += 1
-            else:
-                updated += 1
-            self.stdout.write(f"{'created' if was_created else 'updated'}: {obj.slug}")
+            created += was_created
+            updated += not was_created
+            self.stdout.write(f"{'created' if was_created else 'updated'}: {data['slug']}")
         self.stdout.write(self.style.SUCCESS(f"done: +{created} ~{updated}"))

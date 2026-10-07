@@ -6,13 +6,13 @@
 <main class="article-page">
   <p class="meta">
     <time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"Y-m-d" }}</time>
-    · <a href="{{ post.category.get_absolute_url }}">{{ post.category.name }}</a>
+    · <a href="{% url 'blog:category' post.category %}">{{ post.get_category_display }}</a>
   </p>
   <h1>{{ post.title }}</h1>
   <p class="summary">{{ post.summary }}</p>
-  {% if post.tags %}
+  {% if post.tag_list %}
   <ul class="tags" aria-label="Теги">
-    {% for tag in post.tags %}<li>{{ tag }}</li>{% endfor %}
+    {% for tag in post.tag_list %}<li>{{ tag }}</li>{% endfor %}
   </ul>
   {% endif %}
   <article class="prose">
