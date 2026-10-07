@@ -28,5 +28,21 @@
       <p class="empty-state">Пока нет опубликованных постов. Скоро здесь появятся заметки.</p>
     {% endif %}
   </section>
+
+  {% if commits %}
+  <section class="repo-history" aria-labelledby="repo-heading">
+    <p class="eyebrow">Репозиторий</p>
+    <h2 id="repo-heading">Обновлено <time datetime="{{ repo_updated }}">{{ repo_updated }}</time></h2>
+    <ol class="commit-list">
+      {% for commit in commits %}
+        <li>
+          <time datetime="{{ commit.date }}">{{ commit.date }}</time>
+          <a href="{{ commit.url }}">{{ commit.subject }}</a>
+          <code>{{ commit.short }}</code>
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% endif %}
 </main>
 {% endblock %}

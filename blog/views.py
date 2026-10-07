@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_GET
 
 from .models import CATEGORIES, Post
+from .repo_history import load_history
 
 CATEGORY_NAMES = dict(CATEGORIES)
 
@@ -18,7 +20,17 @@ def health(request: HttpRequest) -> JsonResponse:
 
 @require_GET
 def home(request: HttpRequest) -> HttpResponse:
-    return render(request, "blog/home.html", {"posts": _published_posts()[:20]})
+    history = load_history(settings.BASE_DIR)
+    commits = history["commits"]
+    return render(
+        request,
+        "blog/home.html",
+        {
+            "posts": _published_posts()[:20],
+            "repo_updated": commits[0]["date"] if commits else "",
+            "commits": commits,
+        },
+    )
 
 
 @require_GET

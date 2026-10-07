@@ -46,7 +46,7 @@ Entrypoint: migrate → `import_posts` → collectstatic → gunicorn `:8000`.
 
 | Путь | Назначение |
 |------|------------|
-| `/` | лента |
+| `/` | лента, дата последнего коммита и история репозитория |
 | `/category/<slug>/` | раздел (it / health / sport) |
 | `/posts/<slug>/` | пост |
 | `/health` | healthcheck |

@@ -1,3 +1,16 @@
+FROM python:3.13-slim AS history
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY .git .git
+COPY blog/repo_history.py blog/repo_history.py
+COPY scripts/export_repo_history.py scripts/export_repo_history.py
+RUN git config --global --add safe.directory /src \
+    && python scripts/export_repo_history.py /src > /repo_history.json
+
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -19,6 +32,7 @@ COPY blog/ blog/
 COPY posts/ posts/
 COPY static/ static/
 COPY scripts/entrypoint.sh scripts/entrypoint.sh
+COPY --from=history /repo_history.json blog/data/repo_history.json
 
 RUN chmod +x scripts/entrypoint.sh \
     && useradd --create-home --uid 10001 app \

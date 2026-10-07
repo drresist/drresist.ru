@@ -200,6 +200,54 @@ footer { min-height: 76px; border-top: 1px solid var(--line); color: var(--muted
   text-underline-offset: .18em;
 }
 
+.repo-history {
+  width: min(100%, 720px);
+  margin-top: 72px;
+}
+
+.repo-history h2 {
+  margin: 0 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 500;
+  letter-spacing: -.04em;
+}
+
+.commit-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.commit-list li {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr auto;
+  gap: 12px 16px;
+  align-items: baseline;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.commit-list li:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.commit-list a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.commit-list a:hover {
+  color: var(--accent);
+}
+
+.commit-list code {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 13px;
+}
+
 .article-page .meta a {
   color: var(--muted);
   text-decoration: none;
@@ -233,5 +281,13 @@ footer { min-height: 76px; border-top: 1px solid var(--line); color: var(--muted
 
   .post-card {
     padding: 22px 0;
+  }
+
+  .commit-list li {
+    grid-template-columns: 1fr auto;
+  }
+
+  .commit-list time {
+    grid-column: 1 / -1;
   }
 }
